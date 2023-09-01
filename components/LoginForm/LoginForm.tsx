@@ -6,7 +6,8 @@ import { Button, Checkbox, Form, Input, Alert } from "antd";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { apiCaller } from "../../api/apiConfig";
-import { callHttp } from "@/api/callApi";
+import callHttp from "@/api/callApi";
+import { useLoading } from "@/hooks";
 
 interface ILogin {
   email: string;
@@ -17,7 +18,7 @@ interface ILogin {
 const LoginForm = (props: any) => {
   const { setIsLogin } = props;
   const router = useRouter();
-  const [loginLoading, setLoginLoading] = useState(false);
+  const { isLoading, startLoading, stopLoading } = useLoading();
   const [isLoginFailed, setIsLoginFailed] = useState(false);
 
   const showRegisterForm = () => {
@@ -25,25 +26,24 @@ const LoginForm = (props: any) => {
   };
 
   const handleSubmit = async (values: ILogin) => {
-		await setLoginLoading(true);
-		console.log('loading', loginLoading);
-		
-    await axios({
-			method: "post",
-      url: "http://localhost:3000/auth/login",
-      data: {
-				email: values.email,
-        password: values.password,
-      },
-    })
-		.then((res) => {
-        localStorage.setItem("token", res.data.access_token);
+    startLoading();
 
-        // router.push("/home");
-      })
-      .catch((err) => {
-        setIsLoginFailed(true);
-      });
+    try {
+      await callHttp
+        .get("/todos/1")
+        .then((value) => {
+          console.log(value.data);
+        })
+        .finally(() => {
+          stopLoading();
+        });
+    } catch (error) {
+      console.error(error);
+    }
+
+    // result.then((data) => {
+    //   console.log("data", data);
+    // });
 
     // const data = await callHttp({
     //   method: "post",
@@ -55,7 +55,6 @@ const LoginForm = (props: any) => {
     // });
 
     // console.log("data", data);
-    setLoginLoading(false);
   };
 
   const handleSubmitFailed = (errorInfo: any) => {
@@ -69,7 +68,7 @@ const LoginForm = (props: any) => {
         Welcome back! Please enter your details
       </p>
 
-      {isLoginFailed && !loginLoading && (
+      {isLoginFailed && !isLoading && (
         <Alert
           className="mt-2"
           message="Please check your email or password again!"
@@ -119,7 +118,7 @@ const LoginForm = (props: any) => {
             block
             htmlType="submit"
             className="mt-4"
-            loading={loginLoading}
+            loading={isLoading}
           >
             Sign In
           </Button>
@@ -136,7 +135,7 @@ const LoginForm = (props: any) => {
       </button> */}
 
       <div className="mt-8 flex justify-center">
-        <span className="text-xs">Don't have a account?</span>
+        <span className="text-xs">Don&apos;t have a account?</span>
         <p
           onClick={showRegisterForm}
           className="text-cyan-700 hover:text-sky-500 text-xs ml-2 cursor-pointer"
