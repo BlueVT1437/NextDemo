@@ -25,3 +25,17 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+.ant-btn-primary {
+	background-color: #073c7d;
+}
+
+.btn-delete {
+	background: rgb(204, 0, 0);
+	color: #fff;
+}
+
+.btn-view {
+	border: 1px solid #073c7d;
+	color: #073c7d;
+}
