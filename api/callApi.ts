@@ -4,7 +4,7 @@ interface IApi {
   method: string;
   url: string;
   data?: object;
-	token?: string;
+  token?: string;
 }
 
 export const callHttp = (params: IApi) => {
@@ -12,10 +12,11 @@ export const callHttp = (params: IApi) => {
     method: params.method,
     url: params.url,
     data: params.data,
-    // headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
     .then((res) => {
-			console.log('hello', res.data);
       return res.data;
     })
     .catch((err) => err);

@@ -1,7 +1,9 @@
-import { Button, Checkbox, Form, Input } from "antd";
+import { Alert, Button, Checkbox, Form, Input } from "antd";
 import "./index.scss";
-import { callHttp } from "@/api/callApi";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import useLoading from "@/utils/useLoading";
+import axios from "axios";
 
 type FieldType = {
   name?: string;
@@ -12,8 +14,12 @@ type FieldType = {
 
 const RegisterForm = (props: any) => {
   const { setIsLogin } = props;
+  const USER_ROLE = 2;
 
   const router = useRouter();
+
+  const [isRegisterFailed, setRegisterFailed] = useState(false);
+  const { isLoading, startLoading, stopLoading } = useLoading();
 
   const handleBack = () => {
     setIsLogin(true);
@@ -21,38 +27,59 @@ const RegisterForm = (props: any) => {
 
   const onFinish = async (values: FieldType) => {
     if (values.password === values.rePassword) {
-      console.log("Success:", values);
+      startLoading();
 
-      const data = await callHttp({
+      // const data = await callHttp({
+      //   method: "post",
+      //   url: "http://localhost:3000/auth/register",
+      //   data: {
+      //     name: values.name,
+      //     email: values.email,
+      //     password: values.password,
+      //   },
+      // });
+      await axios({
         method: "post",
         url: "http://localhost:3000/auth/register",
         data: {
           name: values.name,
           email: values.email,
           password: values.password,
+          role: [USER_ROLE],
         },
-      });
+      })
+        .then((res) => {
+          handleBack();
+        })
+        .catch((err) => {
+          setRegisterFailed(true);
+        });
 
-      console.log("data", data);
-
-      router.push("/login");
+      // stopLoading();
+    } else {
+      setRegisterFailed(true);
     }
-  };
-
-  const onFinishFailed = (errorInfo: any) => {
-    console.log("Failed:", errorInfo);
   };
 
   return (
     <div className="login-form w-60 mr-6">
-      <h3 className="font-medium text-xl py-4 mb-4 flex justify-center">
+      <h3 className="font-medium text-xl py-4 flex justify-center">
         WELCOME NEW USER
       </h3>
+
+      {isRegisterFailed && !isLoading && (
+        <Alert
+          className="mt-2"
+          message="Please check your data!"
+          type="error"
+        />
+      )}
+
       <Form
+        className="mt-4"
         name="basic"
         labelCol={{ span: 8 }}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
       >
         <Form.Item<FieldType>

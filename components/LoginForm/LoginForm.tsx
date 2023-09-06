@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { apiCaller } from "../../api/apiConfig";
 import { callHttp } from "@/api/callApi";
+import useLoading from "@/utils/useLoading";
+import useAuth from "@/store/auth";
 
 interface ILogin {
   email: string;
@@ -17,49 +19,42 @@ interface ILogin {
 const LoginForm = (props: any) => {
   const { setIsLogin } = props;
   const router = useRouter();
-  const [loginLoading, setLoginLoading] = useState(false);
+  const { isLoading, startLoading, stopLoading } = useLoading();
   const [isLoginFailed, setIsLoginFailed] = useState(false);
+  const [, setAuh] = useAuth();
 
   const showRegisterForm = () => {
     setIsLogin(false);
   };
 
   const handleSubmit = async (values: ILogin) => {
-		await setLoginLoading(true);
-		console.log('loading', loginLoading);
-		
+    startLoading();
+
     await axios({
-			method: "post",
+      method: "post",
       url: "http://localhost:3000/auth/login",
       data: {
-				email: values.email,
+        email: values.email,
         password: values.password,
       },
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
-		.then((res) => {
+      .then((res) => {
         localStorage.setItem("token", res.data.access_token);
+        const roleList = res.data.user.role.map(
+          (item: Record<string, string>) => item.role
+        );
+        setAuh({ ...res.data.user, roles: roleList });
 
-        // router.push("/home");
+        router.push("/home");
       })
       .catch((err) => {
         setIsLoginFailed(true);
       });
 
-    // const data = await callHttp({
-    //   method: "post",
-    //   url: "http://localhost:3000/auth/login",
-    //   data: {
-    //     email: values.email,
-    //     password: values.password,
-    //   },
-    // });
-
-    // console.log("data", data);
-    setLoginLoading(false);
-  };
-
-  const handleSubmitFailed = (errorInfo: any) => {
-    console.log("Failed:", errorInfo);
+    stopLoading();
   };
 
   return (
@@ -69,7 +64,7 @@ const LoginForm = (props: any) => {
         Welcome back! Please enter your details
       </p>
 
-      {isLoginFailed && !loginLoading && (
+      {isLoginFailed && (
         <Alert
           className="mt-2"
           message="Please check your email or password again!"
@@ -81,8 +76,6 @@ const LoginForm = (props: any) => {
         name="basic"
         labelCol={{ span: 6 }}
         onFinish={handleSubmit}
-        onFinishFailed={handleSubmitFailed}
-        autoComplete="off"
         className="mt-4"
       >
         <Form.Item<ILogin>
@@ -119,7 +112,7 @@ const LoginForm = (props: any) => {
             block
             htmlType="submit"
             className="mt-4"
-            loading={loginLoading}
+            loading={isLoading}
           >
             Sign In
           </Button>
@@ -130,10 +123,6 @@ const LoginForm = (props: any) => {
           </Button>
         </Form.Item>
       </Form>
-
-      {/* <button className="h-8 w-full rounded-md mt-4 border-2 border-slate-400 text-xs">
-        Sign In with Google
-      </button> */}
 
       <div className="mt-8 flex justify-center">
         <span className="text-xs">Don't have a account?</span>

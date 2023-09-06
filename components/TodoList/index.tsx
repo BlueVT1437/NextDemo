@@ -1,61 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Form, Input, Modal, Space, Table, Tag } from "antd";
+import { useState, useEffect, useRef } from "react";
+import { Button, Form, Input, Modal, Space, Table, Tag, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import axios from "axios";
+import useSWR from "swr";
 
 interface DataType {
   key: string;
-  name: string;
-  age: number;
-  address: string;
-  tags: string[];
+  title: string;
+  description: string;
+}
+
+interface ITodo {
+  id?: string;
+  title?: string;
+  description: string;
 }
 
 const TodoList = () => {
   const columns: ColumnsType<DataType> = [
     {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      render: (text) => <a>{text}</a>,
+      title: "No.",
+      dataIndex: "id",
+      key: "id",
     },
     {
-      title: "Age",
-      dataIndex: "age",
-      key: "age",
+      title: "Title",
+      dataIndex: "title",
+      key: "title",
     },
     {
-      title: "Address",
-      dataIndex: "address",
-      key: "address",
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
     },
-    // {
-    //   title: "Tags",
-    //   key: "tags",
-    //   dataIndex: "tags",
-    //   render: (_, { tags }) => (
-    //     <>
-    //       {tags.map((tag) => {
-    //         let color = tag.length > 5 ? "geekblue" : "green";
-    //         if (tag === "loser") {
-    //           color = "volcano";
-    //         }
-    //         return (
-    //           <Tag color={color} key={tag}>
-    //             {tag.toUpperCase()}
-    //           </Tag>
-    //         );
-    //       })}
-    //     </>
-    //   ),
-    // },
     {
       title: "Action",
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <Button className="btn-view" onClick={() => handleOpenEdit(record)}>
+          <Button
+            className="btn-view"
+            onClick={() => handleOpenEdit(record as ITodo)}
+          >
             View
           </Button>
           <Button danger onClick={() => handleOpenDelete(record)}>
@@ -66,63 +54,159 @@ const TodoList = () => {
     },
   ];
 
-  const data: DataType[] = [
-    {
-      key: "1",
-      name: "John Brown",
-      age: 32,
-      address: "New York No. 1 Lake Park",
-      tags: ["nice", "developer"],
-    },
-    {
-      key: "2",
-      name: "Jim Green",
-      age: 42,
-      address: "London No. 1 Lake Park",
-      tags: ["loser"],
-    },
-    {
-      key: "3",
-      name: "Joe Black",
-      age: 32,
-      address: "Sydney No. 1 Lake Park",
-      tags: ["cool", "teacher"],
-    },
-  ];
-
   const [dataList, setDataList] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
+
+  const currentId = useRef("");
+
+  const [messageApi, contextHolder] = message.useMessage();
+  const { TextArea } = Input;
   const [form] = Form.useForm();
 
+  const successMessage = (message: string) => {
+    messageApi.open({
+      type: "success",
+      content: message,
+    });
+  };
+
+  const errorMessage = () => {
+    messageApi.open({
+      type: "error",
+      content: "This is an error message",
+    });
+  };
+
   const handleOpenEdit = (values: any) => {
-    console.log("value", values);
+    currentId.current = values.id;
+    form?.setFieldsValue({ ...values });
     setOpenEdit(true);
   };
 
-  const submitEdit = (values: any) => {
-    console.log("values", values);
+  const submitEdit = (values: ITodo) => {
+    axios({
+      method: "put",
+      url: `http://localhost:3000/todos/${currentId.current}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      data: {
+        title: values.title,
+        description: values.description,
+      },
+    })
+      .then(async (res) => {
+        await getListTableData();
+        successMessage(res.data.message);
+      })
+      .catch((err) => {
+        errorMessage();
+      });
+
     setOpenEdit(false);
   };
 
   const submitCreate = (values: any) => {
-    console.log("values asdasd", values);
+    axios({
+      method: "post",
+      url: `http://localhost:3000/todos`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      data: {
+        title: values.title,
+        description: values.description,
+      },
+    })
+      .then(async (res) => {
+        await getListTableData();
+        successMessage(res.data.message);
+      })
+      .catch((err) => {
+        errorMessage();
+      });
+
     setOpenCreate(false);
   };
 
   const handleDelete = (values: any) => {
+    axios({
+      method: "delete",
+      url: `http://localhost:3000/todos/${currentId.current}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      data: {
+        title: values.title,
+        description: values.description,
+      },
+    })
+      .then(async (res) => {
+        await getListTableData();
+        successMessage(res.data.message);
+      })
+      .catch((err) => {
+        errorMessage();
+      });
+
     setOpenDelete(false);
   };
 
   const handleOpenDelete = (values: any) => {
-    console.log("values", values);
+    currentId.current = values.id;
     setOpenDelete(true);
   };
 
+  useEffect(() => {
+    getListTableData();
+  }, []);
+
+  const getListTableData = () => {
+    axios({
+      method: "get",
+      url: "http://localhost:3000/todos",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => {
+        setDataList(res.data);
+      })
+      .catch((err) => {
+        errorMessage();
+      });
+  };
+
+  const fetcher = async () => {
+    const tempData = await axios({
+      method: "get",
+      url: "http://localhost:3000/todos",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    // .then((res) => {
+    //   setDataList(res.data);
+    // })
+    // .catch((err) => {
+    //   console.log("err", err);
+    // });
+
+    return tempData.data;
+  };
+
+  const { data, error, isLoading } = useSWR(
+    `http://localhost:3000/todos`,
+    fetcher
+  );
+
+  console.log("data", data);
+
   return (
     <div className="w-full m-4 p-8 rounded shadow-2xl drop-shadow-xl">
+      {contextHolder}
       <Button
         className="mb-4"
         type="primary"
@@ -130,7 +214,7 @@ const TodoList = () => {
       >
         Create New Todo
       </Button>
-      <Table columns={columns} dataSource={data} loading={loading} />
+      <Table columns={columns} dataSource={dataList} loading={isLoading} />
 
       {/* Dialog Edit */}
       <Modal
@@ -143,15 +227,18 @@ const TodoList = () => {
         <Form
           form={form}
           name="basics"
-          labelCol={{ span: 4 }}
+          labelCol={{ span: 6 }}
           onFinish={submitEdit}
         >
+          <Form.Item label="Title" name="title">
+            <Input disabled />
+          </Form.Item>
           <Form.Item
-            label="Title"
-            name="title"
-            rules={[{ required: true, message: "Please input your name!" }]}
+            label="Description"
+            name="description"
+            rules={[{ required: true, message: "Please input description!" }]}
           >
-            <Input />
+            <TextArea rows={4} />
           </Form.Item>
         </Form>
       </Modal>
@@ -173,13 +260,25 @@ const TodoList = () => {
         onOk={form.submit}
         onCancel={() => setOpenCreate(false)}
       >
-        <Form name="basic" labelCol={{ span: 4 }} onFinish={submitCreate}>
+        <Form
+          name="basic"
+          form={form}
+          labelCol={{ span: 6 }}
+          onFinish={submitCreate}
+        >
           <Form.Item
             label="Title"
             name="title"
             rules={[{ required: true, message: "Please input your name!" }]}
           >
             <Input />
+          </Form.Item>
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[{ required: true, message: "Please input description!" }]}
+          >
+            <TextArea rows={4} />
           </Form.Item>
         </Form>
       </Modal>
