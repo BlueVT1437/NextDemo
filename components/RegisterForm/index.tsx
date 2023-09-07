@@ -106,7 +106,21 @@ const RegisterForm = (props: any) => {
         <Form.Item<FieldType>
           label="Re password"
           name="rePassword"
-          rules={[{ required: true, message: "Please input your password!" }]}
+          rules={[
+            {
+              required: true,
+            },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue("password") === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(
+                  new Error("The new password that you entered do not match!")
+                );
+              },
+            }),
+          ]}
         >
           <Input.Password />
         </Form.Item>

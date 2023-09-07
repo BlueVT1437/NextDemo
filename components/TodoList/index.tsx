@@ -202,7 +202,8 @@ const TodoList = () => {
     fetcher
   );
 
-  console.log("data", data);
+	// use swr here
+  // console.log("data", data);
 
   return (
     <div className="w-full m-4 p-8 rounded shadow-2xl drop-shadow-xl">

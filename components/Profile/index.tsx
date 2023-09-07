@@ -75,6 +75,7 @@ const Profile = () => {
       .then(async (res) => {
         await getFormData();
         successMessage(res.data.message);
+        setEditMode(false);
       })
       .catch((err) => {
         errorMessage();
@@ -82,28 +83,33 @@ const Profile = () => {
   };
 
   const updatePassword = (passwordValue: IPassword) => {
-    console.log("passwordValue", passwordValue);
-    if (passwordValue.password !== passwordValue.rePassword) {
-      errorMessage();
-    } else {
-      axios({
-        method: "put",
-        url: `http://localhost:3000/user/password/${infoUser.id}`,
-        data: {
-          password: passwordValue.password,
-        },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+    axios({
+      method: "put",
+      url: `http://localhost:3000/user/password/${infoUser.id}`,
+      data: {
+        password: passwordValue.password,
+      },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then(async (res) => {
+        successMessage(res.data.message);
+        formPassword.resetFields();
+        setEditPasswordMode(false);
       })
-        .then(async (res) => {
-          await getFormData();
-          successMessage(res.data.message);
-        })
-        .catch((err) => {
-          errorMessage();
-        });
-    }
+      .catch((err) => {
+        errorMessage();
+      });
+  };
+
+  const handleCancelEdit = () => {
+    form.setFieldsValue({
+      name: infoUser.name,
+      email: infoUser.email,
+    });
+
+    setEditMode(!editMode);
   };
 
   return (
@@ -139,7 +145,7 @@ const Profile = () => {
                 type="default"
                 block
                 className="border-2 border-slate-400"
-                onClick={() => setEditMode(!editMode)}
+                onClick={handleCancelEdit}
               >
                 {editMode ? "Cancel" : "Edit"}
               </Button>
@@ -174,8 +180,21 @@ const Profile = () => {
           <Form.Item<IPassword>
             label="Re password"
             name="rePassword"
+            dependencies={["password"]}
             rules={[
-              { required: true, message: "Please input your password again!" },
+              {
+                required: true,
+              },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(
+                    new Error("The new password that you entered do not match!")
+                  );
+                },
+              }),
             ]}
           >
             <Input disabled={!editPasswordMode} />
