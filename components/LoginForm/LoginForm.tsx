@@ -116,7 +116,7 @@ const LoginForm = (props: any) => {
       </Form>
 
       <div className="mt-8 flex justify-center">
-        <span className="text-xs">Don't have a account?</span>
+        <span className="text-xs">Don&apos;t have a account?</span>
         <p
           onClick={showRegisterForm}
           className="text-cyan-700 hover:text-sky-500 text-xs ml-2 cursor-pointer"
