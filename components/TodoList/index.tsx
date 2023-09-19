@@ -59,24 +59,23 @@ const TodoList = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
 
+  const getAccessToken = () => {
+    return typeof window === "undefined" ? "" : localStorage.getItem("token");
+  };
+
+  const tokenAccess = getAccessToken();
+
   const currentId = useRef("");
 
-  const [messageApi, contextHolder] = message.useMessage();
   const { TextArea } = Input;
   const [form] = Form.useForm();
 
-  const successMessage = (message: string) => {
-    messageApi.open({
-      type: "success",
-      content: message,
-    });
+  const successMessage = (messageInfo: string) => {
+    message.success(messageInfo);
   };
 
   const errorMessage = () => {
-    messageApi.open({
-      type: "error",
-      content: "This is an error message",
-    });
+		message.error("This is an error message")
   };
 
   const handleOpenEdit = (values: any) => {
@@ -90,7 +89,7 @@ const TodoList = () => {
       method: "put",
       url: `http://localhost:3000/todos/${currentId.current}`,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${tokenAccess}`,
       },
       data: {
         title: values.title,
@@ -113,7 +112,7 @@ const TodoList = () => {
       method: "post",
       url: `http://localhost:3000/todos`,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${tokenAccess}`,
       },
       data: {
         title: values.title,
@@ -136,7 +135,7 @@ const TodoList = () => {
       method: "delete",
       url: `http://localhost:3000/todos/${currentId.current}`,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${tokenAccess}`,
       },
       data: {
         title: values.title,
@@ -160,8 +159,10 @@ const TodoList = () => {
   };
 
   useEffect(() => {
-    getListTableData();
-  }, []);
+    if (tokenAccess) {
+      getListTableData();
+    }
+  }, [tokenAccess]);
 
   const getListTableData = () => {
     axios({
@@ -187,12 +188,6 @@ const TodoList = () => {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
-    // .then((res) => {
-    //   setDataList(res.data);
-    // })
-    // .catch((err) => {
-    //   console.log("err", err);
-    // });
 
     return tempData.data;
   };
@@ -202,12 +197,8 @@ const TodoList = () => {
     fetcher
   );
 
-	// use swr here
-  // console.log("data", data);
-
   return (
     <div className="w-full m-4 p-8 rounded shadow-2xl drop-shadow-xl">
-      {contextHolder}
       <Button
         className="mb-4"
         type="primary"
@@ -225,12 +216,7 @@ const TodoList = () => {
         onOk={form.submit}
         onCancel={() => setOpenEdit(false)}
       >
-        <Form
-          form={form}
-          name="basics"
-          labelCol={{ span: 6 }}
-          onFinish={submitEdit}
-        >
+        <Form form={form} name="basics" layout="vertical" onFinish={submitEdit}>
           <Form.Item label="Title" name="title">
             <Input disabled />
           </Form.Item>
@@ -264,7 +250,7 @@ const TodoList = () => {
         <Form
           name="basic"
           form={form}
-          labelCol={{ span: 6 }}
+          layout="vertical"
           onFinish={submitCreate}
         >
           <Form.Item

@@ -12,7 +12,7 @@ const Navbar = () => {
 
   return (
     <div className="navbar">
-      <h3>Cyber Logitech</h3>
+      <h3 className="text-white">CyberLogitec</h3>
       <Button ghost onClick={handleLogOut}>
         Log Out
       </Button>

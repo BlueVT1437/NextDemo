@@ -7,14 +7,27 @@ import { useEffect, useState } from "react";
 import TodoList from "@/components/TodoList";
 import UserList from "@/components/UserList";
 import Profile from "@/components/Profile";
+import { useSearchParams } from "next/navigation";
 
 const Home = () => {
+  const searchParams = useSearchParams();
+
   const [showPage, setShowPage] = useState("Todos");
 
   const PAGE_CONSTANT = {
     TODO: "Todos",
     USER: "Users",
   };
+
+  const getToken = searchParams.get("token");
+
+  useEffect(() => {
+    if (getToken) {
+      localStorage.setItem("token", getToken);
+
+			window.history.replaceState(null, '', '/home')
+    }
+  }, []);
 
   return (
     <>

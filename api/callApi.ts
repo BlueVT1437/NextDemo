@@ -8,16 +8,14 @@ interface IApi {
 }
 
 export const callHttp = (params: IApi) => {
-  axios({
+  return axios({
     method: params.method,
     url: params.url,
     data: params.data,
     headers: {
       "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      Authorization: params.token,
     },
-  })
-    .then((res) => {
-      return res.data;
-    })
-    .catch((err) => err);
+  });
 };

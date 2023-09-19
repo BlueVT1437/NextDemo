@@ -10,6 +10,7 @@ interface IProfile {
 }
 
 interface IPassword {
+  oldPassword: string;
   password: string;
   rePassword: string;
 }
@@ -87,6 +88,7 @@ const Profile = () => {
       method: "put",
       url: `http://localhost:3000/user/password/${infoUser.id}`,
       data: {
+        currentPassword: passwordValue.oldPassword,
         password: passwordValue.password,
       },
       headers: {
@@ -114,113 +116,133 @@ const Profile = () => {
 
   return (
     <div className="w-full h-fit m-8 p-8 rounded shadow-2xl">
-      <h3 className="text-2xl text-black">PROFILE</h3>
+      <h3 className="text-2xl text-black mb-8">PROFILE</h3>
       {contextHolder}
       <div className="flex justify-between">
         <Form
           form={form}
-          className="mt-8 p-8 w-2/5 shadow-2xl"
+          className="w-2/5 shadow-2xl"
           name="basics"
-          labelCol={{ span: 4 }}
+          layout="vertical"
           onFinish={submitEdit}
         >
-          <Form.Item<IProfile>
-            label="Name"
-            name="name"
-            rules={[{ required: true, message: "Please input your name!" }]}
-          >
-            <Input disabled={!editMode} />
-          </Form.Item>
-          <Form.Item<IProfile>
-            label="Email"
-            name="email"
-            rules={[{ required: true, message: "Please input your email!" }]}
-          >
-            <Input disabled={!editMode} />
-          </Form.Item>
+          <div className="p-8">
+            <Form.Item<IProfile>
+              label="Name"
+              name="name"
+              rules={[{ required: true, message: "Please input your name!" }]}
+            >
+              <Input disabled={!editMode} />
+            </Form.Item>
+            <Form.Item<IProfile>
+              label="Email"
+              name="email"
+              rules={[{ required: true, message: "Please input your email!" }]}
+            >
+              <Input disabled={!editMode} />
+            </Form.Item>
 
-          <div className="flex justify-around mt-8">
-            <Form.Item className="w-40">
-              <Button
-                type="default"
-                block
-                className="border-2 border-slate-400"
-                onClick={handleCancelEdit}
-              >
-                {editMode ? "Cancel" : "Edit"}
-              </Button>
-            </Form.Item>
-            <Form.Item className="w-40">
-              <Button
-                type="primary"
-                block
-                htmlType="submit"
-                disabled={!editMode}
-              >
-                Submit
-              </Button>
-            </Form.Item>
+            <div className="flex justify-around mt-8">
+              <Form.Item className="w-40">
+                <Button
+                  type="default"
+                  block
+                  className="border-2 border-slate-400"
+                  onClick={handleCancelEdit}
+                >
+                  {editMode ? "Cancel" : "Edit"}
+                </Button>
+              </Form.Item>
+              <Form.Item className="w-40">
+                <Button
+                  type="primary"
+                  block
+                  htmlType="submit"
+                  disabled={!editMode}
+                >
+                  Submit
+                </Button>
+              </Form.Item>
+            </div>
           </div>
         </Form>
 
         <Form
           form={formPassword}
-          className="mt-8 p-8 w-1/2 shadow-2xl"
+          className="w-1/2 shadow-2xl"
           name="basics"
-          labelCol={{ span: 6 }}
+          layout="vertical"
           onFinish={updatePassword}
         >
-          <Form.Item<IPassword>
-            label="New Password"
-            name="password"
-            rules={[{ required: true, message: "Please input your password!" }]}
-          >
-            <Input disabled={!editPasswordMode} />
-          </Form.Item>
-          <Form.Item<IPassword>
-            label="Re password"
-            name="rePassword"
-            dependencies={["password"]}
-            rules={[
-              {
-                required: true,
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    new Error("The new password that you entered do not match!")
-                  );
+          <div className="p-8">
+            <Form.Item<IPassword>
+              label="Current Password"
+              name="oldPassword"
+              rules={[
+                {
+                  required: true,
+                  message: "Please input your current password!",
                 },
-              }),
-            ]}
-          >
-            <Input disabled={!editPasswordMode} />
-          </Form.Item>
+              ]}
+            >
+              <Input.Password disabled={!editPasswordMode} />
+            </Form.Item>
+            <Form.Item<IPassword>
+              label="New Password"
+              name="password"
+              rules={[
+                { required: true, message: "Please input your new password!" },
+              ]}
+            >
+              <Input.Password disabled={!editPasswordMode} />
+            </Form.Item>
+            <Form.Item<IPassword>
+              label="Re password"
+              name="rePassword"
+              dependencies={["password"]}
+              rules={[
+                {
+                  required: true,
+                },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(
+                      new Error(
+                        "The new password that you entered do not match!"
+                      )
+                    );
+                  },
+                }),
+              ]}
+            >
+              <Input.Password disabled={!editPasswordMode} />
+            </Form.Item>
 
-          <div className="flex justify-around mt-8">
-            <Form.Item className="w-40">
-              <Button
-                type="default"
-                block
-                className="border-2 border-slate-400"
-                onClick={() => setEditPasswordMode(!editPasswordMode)}
-              >
-                {editPasswordMode ? "Cancel" : "Forget Password"}
-              </Button>
-            </Form.Item>
-            <Form.Item className="w-40">
-              <Button
-                type="primary"
-                block
-                htmlType="submit"
-                disabled={!editPasswordMode}
-              >
-                Update Password
-              </Button>
-            </Form.Item>
+            <div className="flex justify-around mt-8">
+              <Form.Item className="w-40">
+                <Button
+                  type="default"
+                  block
+                  className="border-2 border-slate-400"
+                  onClick={() => setEditPasswordMode(!editPasswordMode)}
+                >
+                  {editPasswordMode ? "Cancel" : "Forget Password"}
+                </Button>
+              </Form.Item>
+              <Form.Item className="w-40">
+                <Button
+                  type="primary"
+                  block
+                  htmlType="submit"
+                  disabled={!editPasswordMode}
+                >
+                  Update Password
+                </Button>
+              </Form.Item>
+            </div>
           </div>
         </Form>
       </div>

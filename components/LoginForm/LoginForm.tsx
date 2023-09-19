@@ -1,14 +1,10 @@
-import Link from "next/link";
 import "./index.scss";
-import * as Yup from "yup";
 import { useState } from "react";
 import { Button, Checkbox, Form, Input, Alert } from "antd";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { apiCaller } from "../../api/apiConfig";
-import { callHttp } from "@/api/callApi";
-import useLoading from "@/utils/useLoading";
 import useAuth from "@/store/auth";
+import { callHttp } from "@/api/callApi";
 
 interface ILogin {
   email: string;
@@ -19,17 +15,22 @@ interface ILogin {
 const LoginForm = (props: any) => {
   const { setIsLogin } = props;
   const router = useRouter();
-  const { isLoading, startLoading, stopLoading } = useLoading();
   const [isLoginFailed, setIsLoginFailed] = useState(false);
   const [, setAuh] = useAuth();
+  const [isLoading, setLoading] = useState(false);
 
   const showRegisterForm = () => {
     setIsLogin(false);
   };
 
-  const handleSubmit = async (values: ILogin) => {
-    startLoading();
+  const handleLoginGG = () => {
+    window.location.href = "http://localhost:3000/auth";
+  };
 
+  const handleSubmit = async (values: ILogin) => {
+    changeStatusLoading(true);
+
+    console.log("load", isLoading);
     await axios({
       method: "post",
       url: "http://localhost:3000/auth/login",
@@ -48,36 +49,34 @@ const LoginForm = (props: any) => {
         );
         setAuh({ ...res.data.user, roles: roleList });
 
+        setTimeout(() => changeStatusLoading(false), 1000);
         router.push("/home");
       })
       .catch((err) => {
         setIsLoginFailed(true);
       });
+  };
 
-    stopLoading();
+  const changeStatusLoading = (status: boolean) => {
+    setLoading(status);
   };
 
   return (
     <div className="login-form w-60 mr-6">
       <h3 className="font-medium text-xl pt-4">Welcome Back</h3>
-      <p className="text-slate-400 text-xs mt-4">
+      <p className="text-slate-400 text-xs mt-4 mb-6">
         Welcome back! Please enter your details
       </p>
 
       {isLoginFailed && (
         <Alert
-          className="mt-2"
+          className="mb-4"
           message="Please check your email or password again!"
           type="error"
         />
       )}
 
-      <Form
-        name="basic"
-        labelCol={{ span: 6 }}
-        onFinish={handleSubmit}
-        className="mt-4"
-      >
+      <Form name="basic" layout="vertical" onFinish={handleSubmit}>
         <Form.Item<ILogin>
           label="Email"
           name="email"
@@ -94,18 +93,6 @@ const LoginForm = (props: any) => {
           <Input.Password />
         </Form.Item>
 
-        <div className="flex justify-between h-8">
-          <Form.Item<ILogin> name="remember">
-            <Checkbox>Remember me</Checkbox>
-          </Form.Item>
-          <Link
-            href="/resetPass"
-            className="text-cyan-700 hover:text-sky-500 text-xs mt-2"
-          >
-            Forget Password
-          </Link>
-        </div>
-
         <Form.Item>
           <Button
             type="primary"
@@ -118,7 +105,11 @@ const LoginForm = (props: any) => {
           </Button>
         </Form.Item>
         <Form.Item>
-          <Button block className="mt-2 border-2 border-slate-400">
+          <Button
+            block
+            className="mt-2 border-2 border-slate-400"
+            onClick={handleLoginGG}
+          >
             Sign In with Google
           </Button>
         </Form.Item>

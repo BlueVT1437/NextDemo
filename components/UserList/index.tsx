@@ -15,6 +15,8 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
 import useAuth from "@/store/auth";
+import { callHttp } from "@/api/callApi";
+import Search from "antd/es/input/Search";
 
 interface DataType {
   key: string;
@@ -25,7 +27,17 @@ interface DataType {
   role: object[];
 }
 
+interface IUser {
+  id?: number;
+  name?: string;
+  password?: string;
+  email?: string;
+  roles?: string[];
+}
+
 const UserList = () => {
+  const [infoUser] = useAuth();
+
   const columns: ColumnsType<DataType> = [
     {
       title: "ID",
@@ -78,6 +90,11 @@ const UserList = () => {
     {
       title: "Action",
       key: "action",
+      className: infoUser.roles.some(
+        (itemRole: string) => itemRole === "Manager" || itemRole === "Admin"
+      )
+        ? ""
+        : "hidden",
       render: (_, record) => (
         <>
           {infoUser.roles.some(
@@ -94,7 +111,11 @@ const UserList = () => {
                 Delete
               </Button>
               {!record.status && infoUser.roles.includes("Manager") && (
-                <Button type="primary" ghost onClick={handleActiveAccount}>
+                <Button
+                  type="primary"
+                  ghost
+                  onClick={() => handleActiveAccount(record)}
+                >
                   Active
                 </Button>
               )}
@@ -105,19 +126,11 @@ const UserList = () => {
     },
   ];
 
-  interface IUser {
-    name?: string;
-    password?: string;
-    email?: string;
-    roles?: string[];
-  }
-
   const [dataList, setDataList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
-  const [infoUser] = useAuth();
 
   const currentId = useRef("");
 
@@ -216,21 +229,19 @@ const UserList = () => {
     setOpenDelete(false);
   };
 
-  const handleActiveAccount = async () => {
-    await axios({
+  const handleActiveAccount = async (record: any) => {
+    const data = await callHttp({
       method: "put",
-      url: `http://localhost:3000/user/delete/${currentId.current}`,
+      url: `http://localhost:3000/user/delete/${record.id}`,
       data: {
         isActive: true,
       },
-    })
-      .then(async (res) => {
-        await getListTableData();
-        successMessage(res.data.message);
-      })
-      .catch((err) => {
-        errorMessage();
-      });
+    });
+
+    if (data.data) {
+      await getListTableData();
+      successMessage(data.data.message);
+    }
   };
 
   const handleOpenDelete = (values: any) => {
@@ -264,12 +275,35 @@ const UserList = () => {
     setOpenCreate(true);
   };
 
+  const onSearch = async (mailValue: string) => {
+    const searchData = await callHttp({
+      method: "get",
+      url: `http://localhost:3000/user?mail=${mailValue}`,
+    });
+
+    setDataList(searchData.data);
+  };
+
   return (
     <div className="w-full m-4 p-8 rounded shadow-2xl drop-shadow-xl">
       {contextHolder}
-      <Button className="mb-4" type="primary" onClick={handleOpenCreateUser}>
-        Create New User
-      </Button>
+      <div className="flex justify-between items-center mb-4">
+        {infoUser.roles.some(
+          (itemRole: string) => itemRole === "Manager" || itemRole === "Admin"
+        ) && (
+          <Button type="primary" onClick={handleOpenCreateUser}>
+            Create New User
+          </Button>
+        )}
+        <Search
+          placeholder="input mail"
+          allowClear
+          onSearch={(e) => onSearch(e)}
+          style={{ width: 200 }}
+          enterButton
+        />
+      </div>
+
       <Table columns={columns} dataSource={dataList} loading={loading} />
 
       {/* Dialog Edit */}
@@ -280,12 +314,7 @@ const UserList = () => {
         onOk={form.submit}
         onCancel={() => setOpenEdit(false)}
       >
-        <Form
-          form={form}
-          name="basics"
-          labelCol={{ span: 4 }}
-          onFinish={submitEdit}
-        >
+        <Form form={form} name="basics" layout="vertical" onFinish={submitEdit}>
           <Form.Item
             label="Name"
             name="name"
@@ -349,7 +378,7 @@ const UserList = () => {
         <Form
           name="basic"
           form={form}
-          labelCol={{ span: 4 }}
+          layout="vertical"
           onFinish={submitCreate}
         >
           <Form.Item<IUser>

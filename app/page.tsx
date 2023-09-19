@@ -1,9 +1,13 @@
-import Image from 'next/image'
+import '../styles/globals.css'
+import { SessionProvider } from "next-auth/react"
+import type { AppProps } from "next/app"
 
-export default function Home() {
+export default function App({ Component, pageProps }: AppProps) {
   return (
-    <h1 className="text-3xl font-bold underline">
-      Hello world!
-    </h1>
+    <SessionProvider
+      session={pageProps.session}
+    >
+      <Component {...pageProps} />
+    </SessionProvider>
   )
 }

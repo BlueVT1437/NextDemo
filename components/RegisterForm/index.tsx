@@ -2,8 +2,8 @@ import { Alert, Button, Checkbox, Form, Input } from "antd";
 import "./index.scss";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import useLoading from "@/utils/useLoading";
 import axios from "axios";
+import { callHttp } from "@/api/callApi";
 
 type FieldType = {
   name?: string;
@@ -19,7 +19,6 @@ const RegisterForm = (props: any) => {
   const router = useRouter();
 
   const [isRegisterFailed, setRegisterFailed] = useState(false);
-  const { isLoading, startLoading, stopLoading } = useLoading();
 
   const handleBack = () => {
     setIsLogin(true);
@@ -27,18 +26,7 @@ const RegisterForm = (props: any) => {
 
   const onFinish = async (values: FieldType) => {
     if (values.password === values.rePassword) {
-      startLoading();
-
-      // const data = await callHttp({
-      //   method: "post",
-      //   url: "http://localhost:3000/auth/register",
-      //   data: {
-      //     name: values.name,
-      //     email: values.email,
-      //     password: values.password,
-      //   },
-      // });
-      await axios({
+      const { data } = await callHttp({
         method: "post",
         url: "http://localhost:3000/auth/register",
         data: {
@@ -47,27 +35,43 @@ const RegisterForm = (props: any) => {
           password: values.password,
           role: [USER_ROLE],
         },
-      })
-        .then((res) => {
-          handleBack();
-        })
-        .catch((err) => {
-          setRegisterFailed(true);
-        });
+      });
 
-      // stopLoading();
+      console.log("call", data);
+      if (!data.data) {
+        setRegisterFailed(true);
+      } else {
+        handleBack();
+      }
+      // await axios({
+      //   method: "post",
+      //   url: "http://localhost:3000/auth/register",
+      //   data: {
+      //     name: values.name,
+      //     email: values.email,
+      //     password: values.password,
+      //     role: [USER_ROLE],
+      //   },
+      // })
+      //   .then((res) => {
+      //     handleBack();
+      //   })
+      //   .catch((err) => {
+      //     setRegisterFailed(true);
+      //   });
+
     } else {
       setRegisterFailed(true);
     }
   };
 
   return (
-    <div className="login-form w-60 mr-6">
+    <div className="register-form">
       <h3 className="font-medium text-xl py-4 flex justify-center">
         WELCOME NEW USER
       </h3>
 
-      {isRegisterFailed && !isLoading && (
+      {isRegisterFailed && (
         <Alert
           className="mt-2"
           message="Please check your data!"
@@ -76,9 +80,8 @@ const RegisterForm = (props: any) => {
       )}
 
       <Form
-        className="mt-4"
         name="basic"
-        labelCol={{ span: 8 }}
+        layout="vertical"
         onFinish={onFinish}
         autoComplete="off"
       >
@@ -126,7 +129,7 @@ const RegisterForm = (props: any) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" block htmlType="submit" className="mt-4">
+          <Button type="primary" block htmlType="submit" className="mt-2">
             Submit
           </Button>
         </Form.Item>
