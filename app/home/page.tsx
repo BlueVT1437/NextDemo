@@ -8,6 +8,7 @@ import TodoList from "@/components/TodoList";
 import UserList from "@/components/UserList";
 import Profile from "@/components/Profile";
 import { useSearchParams } from "next/navigation";
+import PermissionForm from "@/components/PermissionForm";
 
 const Home = () => {
   const searchParams = useSearchParams();
@@ -17,6 +18,8 @@ const Home = () => {
   const PAGE_CONSTANT = {
     TODO: "Todos",
     USER: "Users",
+    PROFILE: "Profile",
+    PERMISSION: "Permission",
   };
 
   const getToken = searchParams.get("token");
@@ -25,7 +28,7 @@ const Home = () => {
     if (getToken) {
       localStorage.setItem("token", getToken);
 
-			window.history.replaceState(null, '', '/home')
+      window.history.replaceState(null, "", "/home");
     }
   }, []);
 
@@ -38,8 +41,10 @@ const Home = () => {
           <UserList />
         ) : showPage === PAGE_CONSTANT.TODO ? (
           <TodoList />
-        ) : (
+        ) : showPage === PAGE_CONSTANT.PROFILE ? (
           <Profile />
+        ) : (
+          <PermissionForm />
         )}
       </div>
     </>

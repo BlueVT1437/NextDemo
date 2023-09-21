@@ -35,6 +35,7 @@ const items: MenuItem[] = [
 	getItem("Todo List", "Todos", <PieChartOutlined />),
   getItem("User List", "Users", <DesktopOutlined />),
   getItem("Profile", "Profile", <ContainerOutlined />),
+  getItem("Permission", "Permission", <AppstoreOutlined />),
 
   // getItem("Navigation One", "sub1", <MailOutlined />, [
   //   getItem("Option 5", "5"),

@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "antd";
 import "./index.scss";
 import { useRouter } from "next/navigation";

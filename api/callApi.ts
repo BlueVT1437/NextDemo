@@ -4,7 +4,8 @@ interface IApi {
   method: string;
   url: string;
   data?: object;
-  token?: string;
+  token?: string | null;
+  paramList?: object;
 }
 
 export const callHttp = (params: IApi) => {
@@ -15,7 +16,8 @@ export const callHttp = (params: IApi) => {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      Authorization: params.token,
+      Authorization: `Bearer ${params?.token}`,
     },
+    params: params.paramList,
   });
 };

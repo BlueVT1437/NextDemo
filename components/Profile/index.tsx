@@ -1,4 +1,5 @@
 "use client";
+
 import { Button, Form, Input, message } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -115,7 +116,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="w-full h-fit m-8 p-8 rounded shadow-2xl">
+    <div className="w-full h-fit m-4 p-8 rounded shadow-2xl">
       <h3 className="text-2xl text-black mb-8">PROFILE</h3>
       {contextHolder}
       <div className="flex justify-between">
