@@ -1,3 +1,5 @@
+"use client";
+
 import "./index.scss";
 import { useState } from "react";
 import { Button, Checkbox, Form, Input, Alert } from "antd";
@@ -30,7 +32,6 @@ const LoginForm = (props: any) => {
   const handleSubmit = async (values: ILogin) => {
     changeStatusLoading(true);
 
-    console.log("load", isLoading);
     await axios({
       method: "post",
       url: "http://localhost:3000/auth/login",
@@ -49,7 +50,7 @@ const LoginForm = (props: any) => {
         );
         setAuh({ ...res.data.user, roles: roleList });
 
-        setTimeout(() => changeStatusLoading(false), 1000);
+        setTimeout(() => changeStatusLoading(false), 4000);
         router.push("/home");
       })
       .catch((err) => {
@@ -121,7 +122,7 @@ const LoginForm = (props: any) => {
           onClick={showRegisterForm}
           className="text-cyan-700 hover:text-sky-500 text-xs ml-2 cursor-pointer"
         >
-          Sing Up
+          Sign Up
         </p>
       </div>
     </div>

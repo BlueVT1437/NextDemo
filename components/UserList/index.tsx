@@ -12,7 +12,7 @@ import {
   Tag,
   message,
 } from "antd";
-import type { ColumnsType } from "antd/es/table";
+import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import axios from "axios";
 import useAuth from "@/store/auth";
 import { callHttp } from "@/api/callApi";
@@ -37,6 +37,12 @@ interface IUser {
 
 const UserList = () => {
   const [infoUser] = useAuth();
+
+  interface TableParams {
+    pagination?: TablePaginationConfig;
+    sortField?: string;
+    sortOrder?: string;
+  }
 
   const columns: ColumnsType<DataType> = [
     {
@@ -131,11 +137,18 @@ const UserList = () => {
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
+  const [textMail, setTextMail] = useState("");
 
   const currentId = useRef("");
 
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
+  const [tableParams, setTableParams] = useState<TableParams>({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+  });
 
   const handleOpenEdit = (values: any) => {
     const roleList = values.role.map((item: any) => item.role);
@@ -251,22 +264,21 @@ const UserList = () => {
 
   useEffect(() => {
     getListTableData();
-  }, []);
+  }, [textMail, tableParams.pagination?.current]);
 
-  const getListTableData = () => {
-    axios({
+  const getListTableData = async () => {
+    const searchData = await callHttp({
       method: "get",
-      url: "http://localhost:3000/user",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      url: `http://localhost:3000/user`,
+      paramList: {
+        mail: textMail,
+        page: tableParams.pagination?.current,
+        limit: tableParams.pagination?.pageSize,
       },
-    })
-      .then((res) => {
-        setDataList(res.data);
-      })
-      .catch((err) => {
-        errorMessage();
-      });
+      token: localStorage.getItem("token"),
+    });
+
+    setDataList(searchData.data.data);
   };
 
   const handleOpenCreateUser = () => {
@@ -275,13 +287,10 @@ const UserList = () => {
     setOpenCreate(true);
   };
 
-  const onSearch = async (mailValue: string) => {
-    const searchData = await callHttp({
-      method: "get",
-      url: `http://localhost:3000/user?mail=${mailValue}`,
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    setTableParams({
+      pagination,
     });
-
-    setDataList(searchData.data);
   };
 
   return (
@@ -298,13 +307,19 @@ const UserList = () => {
         <Search
           placeholder="input mail"
           allowClear
-          onSearch={(e) => onSearch(e)}
+          onSearch={(e) => setTextMail(e)}
           style={{ width: 200 }}
           enterButton
         />
       </div>
 
-      <Table columns={columns} dataSource={dataList} loading={loading} />
+      <Table
+        columns={columns}
+        dataSource={dataList}
+        loading={loading}
+        onChange={handleTableChange}
+        pagination={{ pageSize: tableParams.pagination?.pageSize }}
+      />
 
       {/* Dialog Edit */}
       <Modal

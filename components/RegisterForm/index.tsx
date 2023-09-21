@@ -1,3 +1,5 @@
+"use client";
+
 import { Alert, Button, Checkbox, Form, Input } from "antd";
 import "./index.scss";
 import { useRouter } from "next/navigation";
