@@ -141,7 +141,6 @@ const UserList = () => {
 
   const currentId = useRef("");
 
-  const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
   const [tableParams, setTableParams] = useState<TableParams>({
     pagination: {
@@ -158,18 +157,12 @@ const UserList = () => {
     setOpenEdit(true);
   };
 
-  const successMessage = (message: string) => {
-    messageApi.open({
-      type: "success",
-      content: message,
-    });
+  const successMessage = (messageInfo: string) => {
+    message.success(messageInfo);
   };
 
   const errorMessage = () => {
-    messageApi.open({
-      type: "error",
-      content: "This is an error message",
-    });
+		message.error("This is an error message")
   };
 
   const submitEdit = async (values: IUser) => {
@@ -295,7 +288,6 @@ const UserList = () => {
 
   return (
     <div className="w-full m-4 p-8 rounded shadow-2xl drop-shadow-xl">
-      {contextHolder}
       <div className="flex justify-between items-center mb-4">
         {infoUser.roles.some(
           (itemRole: string) => itemRole === "Manager" || itemRole === "Admin"
