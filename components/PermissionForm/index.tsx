@@ -76,39 +76,62 @@ const PermissionForm = () => {
     // });
   };
 
-  const handleSelectUser = (idRole: number) => {
+  const handleSelectUser = async (idRole: number) => {
     if (idRole === 3) {
-			const allPermission = permissionList.map((permission: any) => permission.value)
-			console.log('allPermission', allPermission);
-			setCheckedList(allPermission as any)
+      const allPermission = permissionList.map(
+        (permission: any) => permission.value
+      );
+
+      setCheckedList(allPermission as any);
     } else {
-      callHttp({
+      const dataRole = await callHttp({
         method: "get",
         url: `http://localhost:3000/role/${idRole}`,
       });
+
+      const allowPermission = dataRole.data.permissions.map(
+        (permissionValue: any) => permissionValue.id
+      );
+
+      setCheckedList(allowPermission);
     }
+  };
+
+  const UpdatePermission = () => {
+    successMessage("Update permission successfully!");
   };
 
   return (
     <div className="w-full m-4 p-8 rounded shadow-2xl drop-shadow-xl">
       <p className="text-xl">PERMISSION USER</p>
 
-      <div className="flex items-center mt-2">
-        <p className="mr-4">Please choose user:</p>
-        <Select
-          allowClear
-          style={{ width: 450 }}
-          options={roleList}
-          onChange={handleSelectUser}
-          defaultValue={2}
-        />
+      <div className="flex items-center justify-between mt-2">
+        <div className="flex">
+          <p className="mr-4">Please choose user:</p>
+          <Select
+            allowClear
+            style={{ width: 450 }}
+            options={roleList}
+            onChange={handleSelectUser}
+          />
+        </div>
+        <div className="w-40">
+          <Button
+            className="pt-4 border-2 flex items-center"
+            type="primary"
+            block
+            onClick={UpdatePermission}
+          >
+            Update Permission
+          </Button>
+        </div>
       </div>
 
       <div className="mt-8 p-8 shadow-2xl rounded-2xl">
         <Checkbox.Group
           className="grid grid-cols-3 gap-4"
           options={permissionList}
-          defaultValue={checkedList}
+          value={checkedList}
           onChange={handleCheck}
         />
       </div>

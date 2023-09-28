@@ -173,7 +173,7 @@ const TodoList = () => {
       },
     })
       .then((res) => {
-        setDataList(res.data);
+        setDataList(res.data.data);
       })
       .catch((err) => {
         errorMessage();
