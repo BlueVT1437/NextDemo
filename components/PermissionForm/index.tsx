@@ -7,15 +7,10 @@ import { useEffect, useState } from "react";
 import type { CheckboxValueType } from "antd/es/checkbox/Group";
 
 const PermissionForm = () => {
-  const [form] = Form.useForm();
-
   const [roleList, setRoleList] = useState([]);
   const [permissionList, setPermissionList] = useState([]);
   const [checkedList, setCheckedList] = useState([]);
-
-  const addPermission = async (values: any) => {
-    console.log("addPermission", values);
-  };
+  const [currentRoleId, setCurrentRoleId] = useState(0)
 
   useEffect(() => {
     getUserList();
@@ -24,10 +19,6 @@ const PermissionForm = () => {
 
   const successMessage = (messageInfo: string) => {
     message.success(messageInfo);
-  };
-
-  const errorMessage = () => {
-    message.error("This is an error message");
   };
 
   const getUserList = async () => {
@@ -61,22 +52,15 @@ const PermissionForm = () => {
       label: permission.permission,
     }));
 
-    console.log(
-      "check result",
-      data.data.map((item: any) => item.id)
-    );
-    // setCheckedList(data.data.map((item: any) => item.id));
     setPermissionList(tempData);
   };
 
   const handleCheck = (checkedValues: CheckboxValueType[]) => {
-    // callHttp({
-    //   method: "get",
-    //   url: `http://localhost:3000/user/${checkedValues[0]}`,
-    // });
+    setCheckedList(checkedValues as any);
   };
 
   const handleSelectUser = async (idRole: number) => {
+    setCurrentRoleId(idRole);
     if (idRole === 3) {
       const allPermission = permissionList.map(
         (permission: any) => permission.value
@@ -97,8 +81,17 @@ const PermissionForm = () => {
     }
   };
 
-  const UpdatePermission = () => {
-    successMessage("Update permission successfully!");
+  const UpdatePermission = async () => {
+    const dataRole = await callHttp({
+      method: "put",
+      url: `http://localhost:3000/role`,
+      data: {
+        idRole: currentRoleId,
+        idPermission: checkedList,
+      },
+    });
+
+    successMessage(dataRole.data.message);
   };
 
   return (
