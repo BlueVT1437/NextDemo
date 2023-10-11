@@ -138,16 +138,10 @@ const UserList = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [textMail, setTextMail] = useState("");
+  const [totalData, setTotal] = useState(0);
 
   const currentId = useRef("");
-
   const [form] = Form.useForm();
-  const [tableParams, setTableParams] = useState<TableParams>({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-  });
 
   const handleOpenEdit = (values: any) => {
     const roleList = values.role.map((item: any) => item.role);
@@ -162,7 +156,7 @@ const UserList = () => {
   };
 
   const errorMessage = () => {
-		message.error("This is an error message")
+    message.error("This is an error message");
   };
 
   const submitEdit = async (values: IUser) => {
@@ -184,7 +178,7 @@ const UserList = () => {
       },
     })
       .then(async (res) => {
-        await getListTableData();
+        await getListTableData(1, 3);
         successMessage(res.data.message);
       })
       .catch((err) => {
@@ -206,7 +200,7 @@ const UserList = () => {
       },
     })
       .then(async (res) => {
-        await getListTableData();
+        await getListTableData(1, 3);
         successMessage(res.data.message);
       })
       .catch((err) => {
@@ -225,7 +219,7 @@ const UserList = () => {
       },
     })
       .then(async (res) => {
-        await getListTableData();
+        await getListTableData(1, 3);
         successMessage(res.data.message);
       })
       .catch((err) => {
@@ -245,7 +239,7 @@ const UserList = () => {
     });
 
     if (data.data) {
-      await getListTableData();
+      await getListTableData(1, 3);
       successMessage(data.data.message);
     }
   };
@@ -256,34 +250,29 @@ const UserList = () => {
   };
 
   useEffect(() => {
-    getListTableData();
-  }, [textMail, tableParams.pagination?.current]);
+    getListTableData(1, 3);
+  }, [textMail]);
 
-  const getListTableData = async () => {
-    const searchData = await callHttp({
+  const getListTableData = async (page: number, limit: number) => {
+		const searchData = await callHttp({
       method: "get",
       url: `http://localhost:3000/user`,
       paramList: {
         mail: textMail,
-        page: tableParams.pagination?.current,
-        limit: tableParams.pagination?.pageSize,
+        page,
+        limit,
       },
       token: localStorage.getItem("token"),
     });
 
     setDataList(searchData.data.data);
+    setTotal(searchData.data.total);
   };
 
   const handleOpenCreateUser = () => {
     currentId.current = "";
     form.resetFields();
     setOpenCreate(true);
-  };
-
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    setTableParams({
-      pagination,
-    });
   };
 
   return (
@@ -309,8 +298,13 @@ const UserList = () => {
         columns={columns}
         dataSource={dataList}
         loading={loading}
-        onChange={handleTableChange}
-        pagination={{ pageSize: tableParams.pagination?.pageSize }}
+        pagination={{
+          total: totalData,
+          onChange: (page, pageSize) => {
+            getListTableData(page, pageSize);
+          },
+          pageSize: 3,
+        }}
       />
 
       {/* Dialog Edit */}
