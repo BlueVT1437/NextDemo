@@ -1,7 +1,7 @@
 "use client";
 
 import LoginForm from "@/components/LoginForm/LoginForm";
-import backGround from "../../public/background.png";
+import backGround from "../../public/background.jpeg";
 import Image from "next/image";
 import "./index.scss";
 import RegisterForm from "@/components/RegisterForm";
